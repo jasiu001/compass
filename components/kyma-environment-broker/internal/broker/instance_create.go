@@ -172,6 +172,7 @@ func (b *ProvisionEndpoint) validateAndExtract(details domain.ProvisionDetails, 
 		logger.Infof("Kyma on demand functionality is disabled. Default Kyma version will be used instead %s", parameters.KymaVersion)
 		parameters.KymaVersion = ""
 	}
+	parameters.LicenceType = b.determineLicenceType(details.PlanID)
 
 	found := b.builderFactory.IsPlanSupport(details.PlanID)
 	if !found {
@@ -225,4 +226,13 @@ func (b *ProvisionEndpoint) handleExistingOperation(operation *internal.Provisio
 	err = errors.New("provisioning operation already exist")
 	msg := fmt.Sprintf("provisioning operation with InstanceID %s already exist", operation.InstanceID)
 	return domain.ProvisionedServiceSpec{}, apiresponses.NewFailureResponse(err, http.StatusConflict, msg)
+}
+
+func (b *ProvisionEndpoint) determineLicenceType(id string) *string {
+	licenceType := internal.LicenceTypeDefault
+	if id == AzureLitePlanID {
+		licenceType = internal.LicenceTypeLite
+	}
+
+	return &licenceType
 }
